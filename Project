@@ -1,0 +1,95 @@
+# Tax Assistant Application
+
+class TaxCalculator:
+    def __init__(self):
+        # Tax brackets for 2023 (example values)
+        self.tax_brackets = {
+            'single': [
+                (0, 9950, 0.10),  # 10% for income up to $9,950
+                (9951, 40525, 0.12),  # 12% for income up to $40,525
+                (40526, 86375, 0.22)  # 22% for income up to $86,375
+            ],
+            'married': [
+                (0, 19900, 0.10),  # 10% for income up to $19,900
+                (19901, 81050, 0.12),  # 12% for income up to $81,050
+                (81051, 172750, 0.22)  # 22% for income up to $172,750
+            ]
+        }
+
+    def calculate_tax(self, data):
+        income = data['income']
+        status = data['filing_status']
+        tax = 0
+
+        # Calculate tax based on tax brackets
+        for bracket in self.tax_brackets[status]:
+            if income > bracket[0]:
+                taxable_income = min(income, bracket[1]) - bracket[0]
+                tax += taxable_income * bracket[2]
+
+        return tax
+
+
+class DeductionFinder:
+    def __init__(self):
+        # Standard deductions for 2023 (example values)
+        self.standard_deductions = {
+            'single': 12400,  # Standard deduction for single filers
+            'married': 24800  # Standard deduction for married filers
+        }
+
+    def find_deductions(self, data):
+        status = data['filing_status']
+        total_deductions = sum(data['deductions'].values())  # Sum of user's deductions
+        standard_deduction = self.standard_deductions[status]
+
+        # Calculate additional deductions available
+        return max(standard_deduction - total_deductions, 0)
+
+
+class DataProcessor:
+    def process(self, data):
+        # Validate and process data
+        processed_data = {
+            'income': data['income'],
+            'filing_status': data['filing_status'],
+            'deductions': data['deductions']
+        }
+        return processed_data
+
+
+def main():
+    # Example user input
+    user_data = {
+        'income': 75000,  # User's annual income
+        'filing_status': 'single',  # Filing status (single or married)
+        'dependents': 1,  # Number of dependents (not used in this example but can be extended)
+        'state': 'CA',  # State of residence (not used in this example but can be extended)
+        'deductions': {  # User's deductions
+            'charity': 2000,  # Charity donations
+            'mortgage_interest': 5000  # Mortgage interest paid
+        }
+    }
+
+    # Process user data
+    processor = DataProcessor()
+    processed_data = processor.process(user_data)
+
+    # Calculate tax
+    tax_calculator = TaxCalculator()
+    tax_due = tax_calculator.calculate_tax(processed_data)
+
+    # Find additional deductions
+    deduction_finder = DeductionFinder()
+    additional_deductions = deduction_finder.find_deductions(processed_data)
+
+    # Output results
+    print("\n--- Tax Assistant Results ---")
+    print(f"Income: ${user_data['income']}")
+    print(f"Filing Status: {user_data['filing_status'].capitalize()}")
+    print(f"Calculated Tax Due: ${tax_due:.2f}")
+    print(f"Additional Deductions Available: ${additional_deductions:.2f}\n")
+
+
+if __name__ == "__main__":
+    main()
